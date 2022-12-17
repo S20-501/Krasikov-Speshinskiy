@@ -3,14 +3,9 @@ use ieee.std_logic_1164.all;
 use IEEE.numeric_std.all;
 
 
--- 8 тактов процедура записывает со входа по биту возможно использовать таймеры и стсотояния как в 1 лабе
-
-
 entity Tester is
   port (
     -- входы для возврата значений?
-    -- входные данные
-    --	tester_info					  : in  std_logic; --это вообще нужно?
     -- входные данные с FT
     FT2232H_FSDI : in std_logic;
     -- Входной тактовый сигнал для микросхемы FT2232H
@@ -33,12 +28,12 @@ architecture tester_top of Tester is
   signal TbClock : std_logic := '1';
   signal TbSimEnded : std_logic := '0';
   --увеличивающийся при каждом запросе TID
-  signal count_TID : std_logic_vector(7 downto 0) := "00000000";
-  --сигналы для передачи в виде аргументов функциям записи/чтения
-  
+  signal count_TID : std_logic_vector(7 downto 0) := "00000000";  
+  --нужен для просмотра отправляемой информации
   signal test_FullHeader: std_logic_vector(47 downto 0);
   
   
+  --проверка конкатенации с выводом результата
    function Test_Concatination(
   constant BCount: in std_logic_vector(9 downto 0);
 	constant FB: in std_logic;
@@ -207,16 +202,16 @@ begin
     count_TID <= RecalculationTID(count_TID);
     wait for TbPeriod;
     --011
-    --count_TID <= WriteFullCommand();
+	 --
     --wait for TbPeriod;
     --100
-    --count_TID <= WriteFullCommand();
+    --
     --wait for TbPeriod;
     --101
-    --count_TID <= WriteFullCommand();
+    --
     --wait for TbPeriod;
     --110
-    --count_TID <= WriteFullCommand();
+    --
     --wait for TbPeriod;
     TbSimEnded <= '1';
   end process;
