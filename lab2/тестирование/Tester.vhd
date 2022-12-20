@@ -5,7 +5,6 @@ use IEEE.numeric_std.all;
 
 entity Tester is
   port (
-    -- входы для возврата значений?
     -- входные данные с FT
     FT2232H_FSDI : in std_logic;
     -- Входной тактовый сигнал для микросхемы FT2232H
@@ -28,7 +27,7 @@ architecture tester_top of Tester is
   signal TbClock : std_logic := '1';
   signal TbSimEnded : std_logic := '0';
   --увеличивающийся при каждом запросе TID
-  signal count_TID : std_logic_vector(7 downto 0) := "00000000";  
+  signal TID_count : std_logic_vector(7 downto 0) := "00000000";  
   --нужен для просмотра отправляемой информации
   signal test_FullHeader: std_logic_vector(47 downto 0);
   
@@ -49,19 +48,18 @@ architecture tester_top of Tester is
 	
 	
   --увеличение счетчика запросов
-  function RecalculationTID(count_TID : in std_logic_vector(7 downto 0)) return std_logic_vector is
+  function RecalculationTID(TID_count : in std_logic_vector(7 downto 0)) return std_logic_vector is
     variable result : std_logic_vector(7 downto 0);
   begin
-    if count_TID = "11111111" then
+    if TID_count = "11111111" then
       result := "00000000";
     else
-      result := std_logic_vector(to_unsigned(to_integer(unsigned( count_TID )) + 1, 8));
+      result := std_logic_vector(to_unsigned(to_integer(unsigned( TID_count )) + 1, 8));
     end if;
     return result;
   end function RecalculationTID;
 
   
-
 	--процедура записи
 	procedure WriteCommand(
 		-- количество байт данных
@@ -71,7 +69,7 @@ architecture tester_top of Tester is
 		-- команда
 		constant Cmd: in std_logic_vector(2 downto 0);
 		-- идентификатор транзакции
-		constant count_TID: in std_logic_vector(7 downto 0);
+		constant TID_count: in std_logic_vector(7 downto 0);
 		-- Адрес назначения (источника) данных
 		constant Addr: in std_logic_vector(15 downto 0);
 		--данные для записи
@@ -82,7 +80,7 @@ architecture tester_top of Tester is
 	)is
 		variable FullHeader: std_logic_vector(0 to 47);			
 	begin
-		FullHeader := Addr & "00000000" & count_TID & BCount & "00" & FB & Cmd;
+		FullHeader := Addr & "00000000" & TID_count & BCount & "00" & FB & Cmd;
 		 
 		-- разрешение на запись в FT
 		wait until rising_edge(TbClock);
@@ -137,7 +135,7 @@ procedure ReadCommand(
 -- команда
 	constant Cmd: in std_logic_vector(2 downto 0);
 -- идентификатор транзакции
-	constant count_TID: in std_logic_vector(7 downto 0);
+	constant TID_couunt: in std_logic_vector(7 downto 0);
 -- Адрес назначения (источника) данных
 	constant Addr: in std_logic_vector(15 downto 0);
 	signal FT2232H_FSCTS : out std_logic;
@@ -146,7 +144,7 @@ procedure ReadCommand(
 	variable FullHeader: std_logic_vector(0 to 47);			
 begin
 
-		FullHeader := Addr & "00000000" & count_TID & BCount & "00" & FB & Cmd;
+		FullHeader := Addr & "00000000" & TID_count & BCount & "00" & FB & Cmd;
 		 
 		-- разрешение на запись в FT
 		wait until rising_edge(TbClock);
@@ -190,16 +188,16 @@ begin
     tester_reset <= '0';
     wait for TbPeriod;
     --001
-	 test_FullHeader <= Test_Concatination("0000000001", '0', "001", count_TID, "1100000000000001");
-	 ReadCommand("0000000001", '0', "001", count_TID, "1100000000000001", FT2232H_FSCTS, FT2232H_FSDO);
+	 test_FullHeader <= Test_Concatination("0000000001", '0', "001", TID_count, "1100000000000001");
+	 ReadCommand("0000000001", '0', "001", TID_count, "1100000000000001", FT2232H_FSCTS, FT2232H_FSDO);
 	 wait for TbPeriod;
-    count_TID <= RecalculationTID(count_TID);
+    TID_count <= RecalculationTID(TID_count);
     wait for TbPeriod;
     --010
-    test_FullHeader <= Test_Concatination("0000000010", '0', "010", count_TID, "0000000000000000");
-	 WriteCommand("0000000010", '0', "010", count_TID, "0000000000000000", "1000001111000001", FT2232H_FSCTS, FT2232H_FSDO);
+    test_FullHeader <= Test_Concatination("0000000010", '0', "010", TID_count, "0000000000000000");
+	 WriteCommand("0000000010", '0', "010", TID_count, "0000000000000000", "1000001111000001", FT2232H_FSCTS, FT2232H_FSDO);
 	 wait for TbPeriod;
-    count_TID <= RecalculationTID(count_TID);
+    TID_count <= RecalculationTID(TID_count);
     wait for TbPeriod;
     --011
 	 --
