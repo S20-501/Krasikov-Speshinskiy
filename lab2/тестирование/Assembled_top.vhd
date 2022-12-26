@@ -5,8 +5,9 @@ use ieee.std_logic_arith.all;
 entity Assembled_top is
   port (
     CLK12M : in std_logic;
-    reset : in std_logic
-
+    reset : in std_logic;
+    DataStrobe : out std_logic;
+    dataout : out std_logic_vector(7 downto 0)
   );
 end entity Assembled_top;
 
@@ -479,8 +480,8 @@ port map (
   ISig_In => ISigOut,
   QSig_In => QSigOut,
   FS_IncrDecr => FS_IncrDecr,--
-  IData_Out => IData_Out,
-  QData_Out => QData_Out,
+  IData_Out => IData_Out,--
+  QData_Out => QData_Out,--
   DataValid => DataValid,
   i_coeff_0 => i_coeff_0,--
   i_coeff_1 => i_coeff_1,--
@@ -494,7 +495,7 @@ MA_inst : MA
     i_clk => c0,
     i_nRst => reset OR locked,
     i_data => i_data,--
-    MANumber => MANumber,--
+    MANumber => delay,
     o_data => o_data--
   );
 
@@ -506,9 +507,9 @@ MA_inst : MA
     IData_In => IData_Out,
     QData_In => QData_Out,
     DataValid => DataValid,
-    DataStrobe => DataStrobe,--
-    delay => delay,--
-    dataout => dataout--
+    DataStrobe => DataStrobe,--на выход
+    delay => delay,
+    dataout => dataout--на выход
   );
 
 
