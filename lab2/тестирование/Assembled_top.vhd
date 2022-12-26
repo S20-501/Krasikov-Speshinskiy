@@ -57,15 +57,15 @@ end component;
 
 component GSMRegistr_top
     port (
-    WB_Addr_IN : in std_logic_vector( 15 downto 0 );
-    WB_Ack_OUT : out std_logic;
+    WB_Addr : in std_logic_vector( 15 downto 0 );
+    WB_Ack : out std_logic;
     Clk : in std_logic;
-    WB_Data_IN : in std_logic_vector( 15 downto 0 );
-    WB_Data_OUT : out std_logic_vector( 15 downto 0 );
+    WB_DataIn : in std_logic_vector( 15 downto 0 );
+    WB_DataOut : out std_logic_vector( 15 downto 0 );
     nRst : in std_logic;
-    WB_Sel_IN : in std_logic_vector( 1 downto 0 );
-    WB_STB_IN : in std_logic;
-    WB_WE_IN : in std_logic;
+    WB_Sel : in std_logic_vector( 1 downto 0 );
+    WB_STB : in std_logic;
+    WB_WE : in std_logic;
     WB_Cyc : in std_logic;
     WB_CTI : in std_logic_vector(2 downto 0);
     PRT_O : out std_logic_vector( 15 downto 0 );
@@ -80,6 +80,7 @@ component GSMRegistr_top
     usedw : out STD_LOGIC_VECTOR (9 DOWNTO 0)
   );
 end component;
+
 
 
 component modulator
@@ -334,20 +335,20 @@ modulator_inst : modulator
 
   GSMRegistr_top_inst : GSMRegistr_top
   port map (
-    WB_Addr_IN => WB_Addr_IN,--
-    WB_Ack_OUT => WB_Ack_OUT,
+    WB_Addr => WB_Addr,--
+    WB_Ack => WB_Ack,--
     Clk => c0,
-    WB_Data_IN => WB_Data_IN,--
-    WB_Data_OUT => WB_Data_OUT,--
+    WB_DataIn => WB_DataIn,--
+    WB_DataOut => WB_DataOut,--
     nRst => reset OR locked,
-    WB_Sel_IN => WB_Sel,
-    WB_STB_IN => WB_STB,
-    WB_WE_IN => WB_WE_IN,
+    WB_Sel => WB_Sel,
+    WB_STB => WB_STB,
+    WB_WE => WB_WE,
     WB_Cyc => WB_Cyc,--
-    WB_CTI => WB_CTI_IN,
+    WB_CTI => WB_CTI,
     PRT_O => PRT_O,
-    Amplitude_OUT => Amplitude,--почему в 3 модулях
-    StartPhase_OUT => StartPhase,--почему в 3 модулях
+    Amplitude_OUT => Amplitude_OUT,--
+    StartPhase_OUT => StartPhase_OUT,--
     CarrierFrequency_OUT => CarrierFrequency,
     SymbolFrequency_OUT => SymbolFrequency,
     rdreq => rdreq,
@@ -374,7 +375,7 @@ modulator_inst : modulator
     WB_DataIn_1 => WB_DataIn_1,--
     WB_DataIn_2 => WB_DataIn_2,--
     WB_DataIn_3 => WB_DataIn_3,--
-    WB_WE => WB_WE_IN,
+    WB_WE => WB_WE,
     WB_Sel => WB_Sel,
     WB_STB => WB_STB,
     WB_Cyc_0 => WB_Cyc_0,--
@@ -382,9 +383,8 @@ modulator_inst : modulator
     WB_Cyc_2 => WB_Cyc_2,--
     WB_Cyc_3 => WB_Cyc_3,--
     WB_Ack => WB_Ack_OUT,
-    WB_CTI => WB_CTI_IN
+    WB_CTI => WB_CTI
   );
-
 
 
   ProtocolExchangeModule_inst : ProtocolExchangeModule
@@ -421,7 +421,6 @@ modulator_inst : modulator
 
 
 -----------------Analyzer
-----------------------------
 DDS_inst : DDS
 port map (
   clk => c0,
