@@ -247,11 +247,14 @@ end component;
     port (
     i_clk : in std_logic;
     i_nRst : in std_logic;
-    i_data : in std_logic_vector(10-1 downto 0);
-    MANumber : in std_logic_vector(8-1 downto 0);
-    o_data : out std_logic_vector(10-1 downto 0)
+    IData_In : in std_logic_vector(10-1 downto 0);
+    QData_In : in std_logic_vector(10-1 downto 0);
+    MANumber : in std_logic_vector(5-1 downto 0);
+    IData_Out : out std_logic_vector(10-1 downto 0);
+    QData_out : out std_logic_vector(10-1 downto 0)
   );
 end component;
+
 
 
 
@@ -480,8 +483,8 @@ port map (
   ISig_In => ISigOut,
   QSig_In => QSigOut,
   FS_IncrDecr => FS_IncrDecr,--
-  IData_Out => IData_Out,--
-  QData_Out => QData_Out,--
+  IData_Out => IData_Out,
+  QData_Out => QData_Out,
   DataValid => DataValid,
   i_coeff_0 => i_coeff_0,--
   i_coeff_1 => i_coeff_1,--
@@ -490,22 +493,25 @@ port map (
 );
 
 
-MA_inst : MA
+  MA_inst : MA
   port map (
     i_clk => c0,
     i_nRst => reset OR locked,
-    i_data => i_data,--
+    IData_In => IData_Out,
+    QData_In => QData_Out,
     MANumber => delay,
-    o_data => o_data--юре(demodulator_decoder_top) на вход, но их должно быть 2
+    IData_Out => IData_In,
+    QData_out => QData_In
   );
+
 
 
   demodulator_decoder_top_inst : demodulator_decoder_top
   port map (
     clk => c0,
     nRst => reset OR locked,
-    IData_In => IData_Out,
-    QData_In => QData_Out,
+    IData_In => IData_In,
+    QData_In => QData_In,
     DataValid => DataValid,
     DataStrobe => DataStrobe,--на выход
     delay => delay,
