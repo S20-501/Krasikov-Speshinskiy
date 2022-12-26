@@ -347,10 +347,10 @@ modulator_inst : modulator
     WB_WE => WB_WE_IN,
     WB_Sel => WB_Sel,
     WB_STB => WB_STB,
-    WB_Cyc_0 => WB_Cyc_0,
-    WB_Cyc_1 => WB_Cyc_1,
-    WB_Cyc_2 => WB_Cyc_2,
-    WB_Cyc_3 => WB_Cyc_3,
+    WB_Cyc_0 => WB_Cyc_0,--
+    WB_Cyc_1 => WB_Cyc_1,--
+    WB_Cyc_2 => WB_Cyc_2,--
+    WB_Cyc_3 => WB_Cyc_3,--
     WB_Ack => WB_Ack_OUT,
     WB_CTI => WB_CTI_IN
   );
@@ -385,7 +385,7 @@ modulator_inst : modulator
     WB_Sel_IN => WB_Sel,
     WB_STB_IN => WB_STB,
     WB_WE_IN => WB_WE_IN,
-    WB_Cyc => WB_Cyc,
+    WB_Cyc => WB_Cyc,--
     WB_CTI => WB_CTI_IN,
     PRT_O => PRT_O,--
     Amplitude_OUT => Amplitude,--почему в 3 модулях
