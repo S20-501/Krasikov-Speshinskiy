@@ -300,17 +300,17 @@ modulator_inst : modulator
   port map (
     clk => c0,
     nRst => reset OR locked,
-    Sync => Sync,--
-    SignalMode => SignalMode,--
-    ModulationMode => ModulationMode,--
-    Mode => Mode,--
+    Sync => PRT_O(6),
+    SignalMode => PRT_O(4 downto 3),
+    ModulationMode => PRT_O(2 downto 1),
+    Mode => PRT_O(0),
     AmpErr => AmpErr,--
-    Amplitude => Amplitude,--почему в 3 модулях
-    StartPhase => StartPhase,--почему в 3 модулях
+    Amplitude => Amplitude,
+    StartPhase => StartPhase,
     CarrierFrequency => CarrierFrequency,
     SymbolFrequency => SymbolFrequency,
-    DataPort => DataPort,--
-    rdreq => rdreq,--
+    DataPort => DataPort,
+    rdreq => rdreq,
     DDS_en => DDS_en
   );
 
@@ -320,12 +320,38 @@ modulator_inst : modulator
     clk => c0,
     nRst => reset OR locked,
     DDS_en_s => DDS_en,
-    DDS_mode_s => DDS_mode_s,--
-    DDS_amplitude_s => Amplitude,--почему в 3 модулях
-    DDS_frequency_s => DDS_frequency_s,--
-    DDS_start_phase_s => StartPhase,--почему в 3 модулях
+    DDS_mode_s => PRT_O(4 downto 3),
+    DDS_amplitude_s => Amplitude,
+    DDS_frequency_s => CarrierFrequency,
+    DDS_start_phase_s => StartPhase,
     DAC_I_s => DAC_I_s,
     DAC_Q_s => DAC_Q_s
+  );
+
+
+  GSMRegistr_top_inst : GSMRegistr_top
+  port map (
+    WB_Addr_IN => WB_Addr_IN,--
+    WB_Ack_OUT => WB_Ack_OUT,
+    Clk => c0,
+    WB_Data_IN => WB_Data_IN,--
+    WB_Data_OUT => WB_Data_OUT,--
+    nRst => reset OR locked,
+    WB_Sel_IN => WB_Sel,
+    WB_STB_IN => WB_STB,
+    WB_WE_IN => WB_WE_IN,
+    WB_Cyc => WB_Cyc,--
+    WB_CTI => WB_CTI_IN,
+    PRT_O => PRT_O,
+    Amplitude_OUT => Amplitude,--почему в 3 модулях
+    StartPhase_OUT => StartPhase,--почему в 3 модулях
+    CarrierFrequency_OUT => CarrierFrequency,
+    SymbolFrequency_OUT => SymbolFrequency,
+    rdreq => rdreq,
+    empty => empty,--
+    full => full,--
+    q => DataPort,
+    usedw => usedw--
   );
 
 
@@ -372,32 +398,6 @@ modulator_inst : modulator
     q_output => q_input,
     usedw_input_count => usedw_input_fo,
     usedw_output_count => usedw_input_fi
-  );
-
-
-  GSMRegistr_top_inst : GSMRegistr_top
-  port map (
-    WB_Addr_IN => WB_Addr_IN,--
-    WB_Ack_OUT => WB_Ack_OUT,
-    Clk => c0,
-    WB_Data_IN => WB_Data_IN,--
-    WB_Data_OUT => WB_Data_OUT,--
-    nRst => reset OR locked,
-    WB_Sel_IN => WB_Sel,
-    WB_STB_IN => WB_STB,
-    WB_WE_IN => WB_WE_IN,
-    WB_Cyc => WB_Cyc,--
-    WB_CTI => WB_CTI_IN,
-    PRT_O => PRT_O,--
-    Amplitude_OUT => Amplitude,--почему в 3 модулях
-    StartPhase_OUT => StartPhase,--почему в 3 модулях
-    CarrierFrequency_OUT => CarrierFrequency,
-    SymbolFrequency_OUT => SymbolFrequency,
-    rdreq => rdreq,--
-    empty => empty,--
-    full => full,--
-    q => q,--
-    usedw => usedw--
   );
 
 
@@ -496,7 +496,7 @@ MA_inst : MA
     i_nRst => reset OR locked,
     i_data => i_data,--
     MANumber => delay,
-    o_data => o_data--
+    o_data => o_data--юре(demodulator_decoder_top) на вход, но их должно быть 2
   );
 
 
