@@ -338,13 +338,13 @@ modulator_inst : modulator
     WB_Addr => WB_Addr,
     WB_Ack => WB_Ack,--
     Clk => c0,
-    WB_DataIn => WB_DataIn,--
-    WB_DataOut => WB_DataOut,--
+    WB_DataIn => WB_DataOut,
+    WB_DataOut => WB_DataIn_0,
     nRst => reset OR locked,
     WB_Sel => WB_Sel,
     WB_STB => WB_STB,
     WB_WE => WB_WE,
-    WB_Cyc => WB_Cyc,--
+    WB_Cyc => WB_Cyc_0,
     WB_CTI => WB_CTI,
     PRT_O => PRT_O,
     Amplitude_OUT => Amplitude_OUT,--
@@ -370,16 +370,16 @@ modulator_inst : modulator
     usedw_input_fo => usedw_input_fo,
     wrreq_output => wrreq_output,
     WB_Addr => WB_Addr,
-    WB_DataOut => WB_DataOut,--
-    WB_DataIn_0 => WB_DataIn_0,--
+    WB_DataOut => WB_DataOut,
+    WB_DataIn_0 => WB_DataIn_0,
     WB_DataIn_1 => WB_DataIn_1,--
-    WB_DataIn_2 => WB_DataIn_2,--
+    WB_DataIn_2 => WB_DataIn_2,
     WB_DataIn_3 => WB_DataIn_3,--
     WB_WE => WB_WE,
     WB_Sel => WB_Sel,
     WB_STB => WB_STB,
-    WB_Cyc_0 => WB_Cyc_0,--
-    WB_Cyc_1 => WB_Cyc_1,--
+    WB_Cyc_0 => WB_Cyc_0,
+    WB_Cyc_1 => WB_Cyc_1,
     WB_Cyc_2 => WB_Cyc_2,--
     WB_Cyc_3 => WB_Cyc_3,--
     WB_Ack => WB_Ack_OUT,
@@ -422,16 +422,16 @@ modulator_inst : modulator
 
 
 -----------------Analyzer
-DDS_inst : DDS
+DDS_inst : DDS-- куда подключать WB_DataIn_1
 port map (
   clk => c0,
   nRst => reset OR locked,
   WB_Addr => WB_Addr,
-  WB_DataIn => WB_DataIn,--
+  WB_DataIn => WB_DataOut,
   WB_WE => WB_WE,
   WB_Sel => WB_Sel,
   WB_STB => WB_STB,
-  WB_Cyc => WB_Cyc,--
+  WB_Cyc => WB_Cyc_1,
   WB_Ack => WB_Ack,
   WB_CTI => WB_CTI,
   DataFlow_Clk => Clk_DataFlow,
@@ -462,15 +462,15 @@ Geterodine_module_inst : Geterodine_module--почему 2 WB_Ack
 port map (
   WB_ADDR_IN => WB_Addr,
   WB_ACK_OUT => WB_Ack,--
-  WB_DATA_IN_0 => WB_DATA_IN_0,--должен быть 1
+  WB_DATA_IN_0 => WB_DATA_IN_0,--должен быть 1 (соединить WB_DataOut)
   WB_DATA_IN_1 => WB_DATA_IN_1,--
   WB_DATA_IN_2 => WB_DATA_IN_2,--
   WB_DATA_IN_3 => WB_DATA_IN_3,--
-  WB_DATA_OUT => WB_DATA_OUT,--
+  WB_DATA_OUT => WB_DataIn_2,
   WB_SEL_IN => WB_Sel,
   WB_STB_IN => WB_STB,
   WB_WE => WB_WE,
-  WB_Cyc_0 => WB_Cyc_0,--должен быть 1
+  WB_Cyc_0 => WB_Cyc_0,--должен быть 1 (соединить WB_Cyc_2)
   WB_Cyc_1 => WB_Cyc_1,--
   WB_Cyc_2 => WB_Cyc_2,--
   WB_Cyc_3 => WB_Cyc_3,--
