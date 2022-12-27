@@ -6,7 +6,7 @@ entity Assembled_top is
   port (
     CLK12M : in std_logic;
     reset : in std_logic;
-    DataStrobe : out std_logic;
+    DataStrobe_out : out std_logic;
     dataout : out std_logic_vector(7 downto 0)
   );
 end entity Assembled_top;
@@ -335,7 +335,7 @@ modulator_inst : modulator
 
   GSMRegistr_top_inst : GSMRegistr_top
   port map (
-    WB_Addr => WB_Addr,--
+    WB_Addr => WB_Addr,
     WB_Ack => WB_Ack,--
     Clk => c0,
     WB_DataIn => WB_DataIn,--
@@ -365,11 +365,11 @@ modulator_inst : modulator
     nRst => reset OR locked,
     q_input => q_input,
     usedw_input_fi => usedw_input_fi,
-    rdreq_output => rdreq_output,--
+    rdreq_output => rdreq_output,
     data_output => data_output,
     usedw_input_fo => usedw_input_fo,
     wrreq_output => wrreq_output,
-    WB_Addr => WB_Addr,--
+    WB_Addr => WB_Addr,
     WB_DataOut => WB_DataOut,--
     WB_DataIn_0 => WB_DataIn_0,--
     WB_DataIn_1 => WB_DataIn_1,--
@@ -396,7 +396,7 @@ modulator_inst : modulator
     FT2232H_FSDI => FT2232H_FSDI,
     FT2232H_FSCLK => FT2232H_FSCLK,
     data_input => data_output,
-    rdreq_output => rdreq_output,--
+    rdreq_output => rdreq_output,
     wrreq_input => wrreq_otput,
     q_output => q_input,
     usedw_input_count => usedw_input_fo,
@@ -410,8 +410,9 @@ modulator_inst : modulator
     nRst => nRst,
     DAC_I_sig => DAC_I_s,
     DAC_Q_sig => DAC_Q_s,
-    Rst_For_DAC => Rst_For_DAC,--
-    Power_Down => Power_Down,--
+    Rst_For_DAC => Rst_For_DAC,--установить в 0
+    Power_Down => Power_Down,--установить в 0?
+    --на выход
     DAC_Clk => DAC_Clk,--
     DAC_Rst => DAC_Rst,--
     DAC_Write => DAC_Write,--
@@ -425,7 +426,7 @@ DDS_inst : DDS
 port map (
   clk => c0,
   nRst => reset OR locked,
-  WB_Addr => WB_Addr,--
+  WB_Addr => WB_Addr,
   WB_DataIn => WB_DataIn,--
   WB_WE => WB_WE,
   WB_Sel => WB_Sel,
@@ -443,11 +444,11 @@ port map (
   Clk_ADC => Clk_ADC,
   Clk_DataFlow => Clk_DataFlow,
   nRst => reset OR locked,
-  ReceiveDataMode => ReceiveDataMode,--
+  ReceiveDataMode => ReceiveDataMode,
   ADC_SigIn => ADC_SigIn,--
   ISigOut => ISigOut,
   QSigOut => QSigOut,
-  DataStrobe => DataStrobe,--
+  DataStrobe => DataStrobe,
   Gain_s => Gain_s,--
   OutputBusSelect_s => OutputBusSelect_s,--
   Standby_s => Standby_s,--
@@ -459,9 +460,9 @@ port map (
 
 Geterodine_module_inst : Geterodine_module--почему 2 WB_Ack
 port map (
-  WB_ADDR_IN => WB_ADDR_IN,--
+  WB_ADDR_IN => WB_Addr,
   WB_ACK_OUT => WB_Ack,--
-  WB_DATA_IN_0 => WB_DATA_IN_0,--
+  WB_DATA_IN_0 => WB_DATA_IN_0,--должен быть 1
   WB_DATA_IN_1 => WB_DATA_IN_1,--
   WB_DATA_IN_2 => WB_DATA_IN_2,--
   WB_DATA_IN_3 => WB_DATA_IN_3,--
@@ -469,7 +470,7 @@ port map (
   WB_SEL_IN => WB_Sel,
   WB_STB_IN => WB_STB,
   WB_WE => WB_WE,
-  WB_Cyc_0 => WB_Cyc_0,--
+  WB_Cyc_0 => WB_Cyc_0,--должен быть 1
   WB_Cyc_1 => WB_Cyc_1,--
   WB_Cyc_2 => WB_Cyc_2,--
   WB_Cyc_3 => WB_Cyc_3,--
@@ -477,8 +478,8 @@ port map (
   WB_CTI => WB_CTI,
   Clk => c0,
   nRst => reset OR locked,
-  ReceiveDataMode => ReceiveDataMode,--
-  DataStrobe => DataStrobe,--
+  ReceiveDataMode => ReceiveDataMode,
+  DataStrobe => DataStrobe,
   ISig_In => ISigOut,
   QSig_In => QSigOut,
   FS_IncrDecr => FS_IncrDecr,--
@@ -512,7 +513,7 @@ port map (
     IData_In => IData_In,
     QData_In => QData_In,
     DataValid => DataValid,
-    DataStrobe => DataStrobe,--на выход
+    DataStrobe => DataStrobe_out,--на выход
     delay => delay,
     dataout => dataout--на выход
   );
