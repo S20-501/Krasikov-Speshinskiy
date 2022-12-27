@@ -7,7 +7,12 @@ entity Assembled_top is
     CLK12M : in std_logic;
     reset : in std_logic;
     DataStrobe_out : out std_logic;
-    dataout : out std_logic_vector(7 downto 0)
+    dataout : out std_logic_vector(7 downto 0);
+    DAC_Clk : out std_logic;
+    DAC_Rst : out std_logic;
+    DAC_Write : out std_logic;
+    DAC_Select : out std_logic;
+    DAC_Data : out std_logic_vector(9 downto 0)
   );
 end entity Assembled_top;
 
