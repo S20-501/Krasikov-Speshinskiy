@@ -12,7 +12,14 @@ entity Assembled_top is
     DAC_Rst : out std_logic;
     DAC_Write : out std_logic;
     DAC_Select : out std_logic;
-    DAC_Data : out std_logic_vector(9 downto 0)
+    DAC_Data : out std_logic_vector(9 downto 0);
+    ADC_SigIn : in std_logic_vector(9 downto 0);
+    Gain_s : out std_logic;--F13
+    OutputBusSelect_s : out std_logic;--F15
+    Standby_s : out std_logic;--F16
+    PowerDown_s : out std_logic;--D16
+    OffsetCorrect_s : out std_logic;--P1
+    OutputFormat_s : out std_logic--L2
   );
 end entity Assembled_top;
 
@@ -174,23 +181,24 @@ end component;
 
 
 -----------------Analyzer
-  component DDS
+component DDS
     port (
-      clk : in std_logic;
-      nRst : in std_logic;
-      WB_Addr : in std_logic_vector(15 downto 0);
-      WB_DataOut : out std_logic_vector(15 downto 0);
-      WB_DataIn : in std_logic_vector(15 downto 0);
-      WB_WE : in std_logic;
-      WB_Sel : in std_logic_vector(1 downto 0);
-      WB_STB : in std_logic;
-      WB_Cyc : in std_logic;
-      WB_Ack : out std_logic;
-      WB_CTI : in std_logic_vector(2 downto 0);
-      DataFlow_Clk : out std_logic;
-      ADC_Clk : out std_logic
-    );
-  end component;
+    clk : in std_logic;
+    nRst : in std_logic;
+    WB_Addr : in std_logic_vector(15 downto 0);
+    WB_DataOut : out std_logic_vector(15 downto 0);
+    WB_DataIn : in std_logic_vector(15 downto 0);
+    WB_WE : in std_logic;
+    WB_Sel : in std_logic_vector(1 downto 0);
+    WB_STB : in std_logic;
+    WB_Cyc : in std_logic;
+    WB_Ack : out std_logic;
+    WB_CTI : in std_logic_vector(2 downto 0);
+    DataFlow_Clk : out std_logic;
+    ADC_Clk : out std_logic
+  );
+end component;
+
 
 
   component demultiplexer_top
@@ -215,38 +223,19 @@ end component;
 
   component Geterodine_module
     port (
-      WB_ADDR_IN : in std_logic_vector(15 downto 0);
-      WB_ACK_OUT : out std_logic;
-      WB_DATA_IN_0 : in std_logic_vector(15 downto 0);
-      WB_DATA_IN_1 : in std_logic_vector(15 downto 0);
-      WB_DATA_IN_2 : in std_logic_vector(15 downto 0);
-      WB_DATA_IN_3 : in std_logic_vector(15 downto 0);
-      WB_DATA_OUT : out std_logic_vector(15 downto 0);
-      WB_SEL_IN : in std_logic_vector(1 downto 0);
-      WB_STB_IN : in std_logic;
-      WB_WE : out std_logic;
-      WB_Cyc_0 : out std_logic;
-      WB_Cyc_1 : out std_logic;
-      WB_Cyc_2 : out std_logic;
-      WB_Cyc_3 : out std_logic;
-      WB_Ack : out std_logic;
-      WB_CTI : out std_logic_vector(2 downto 0);
-      Clk : in std_logic;
-      nRst : in std_logic;
-      ReceiveDataMode : in std_logic;
-      DataStrobe : in std_logic;
-      ISig_In : in std_logic_vector(9 downto 0);
-      QSig_In : in std_logic_vector(9 downto 0);
-      FS_IncrDecr : in std_logic_vector(1 downto 0);
-      IData_Out : out std_logic_vector(9 downto 0);
-      QData_Out : out std_logic_vector(9 downto 0);
-      DataValid : out std_logic;
-      i_coeff_0 : in std_logic_vector(9 downto 0);
-      i_coeff_1 : in std_logic_vector(9 downto 0);
-      i_coeff_2 : in std_logic_vector(9 downto 0);
-      i_coeff_3 : in std_logic_vector(9 downto 0)
-    );
+    Clk : in std_logic;
+    nRst : in std_logic;
+    ReceiveDataMode : in std_logic;
+    DataStrobe : in std_logic;
+    ISig_In : in std_logic_vector(9 downto 0);
+    QSig_In : in std_logic_vector(9 downto 0);
+    FS_IncrDecr : in std_logic_vector(1 downto 0);
+    IData_Out : out std_logic_vector(9 downto 0);
+    QData_Out : out std_logic_vector(9 downto 0);
+    DataValid : out std_logic
+  );
   end component;
+
 
 
   component MA
@@ -313,7 +302,7 @@ modulator_inst : modulator
     SignalMode => PRT_O(4 downto 3),
     ModulationMode => PRT_O(2 downto 1),
     Mode => PRT_O(0),
-    AmpErr => AmpErr,--
+    AmpErr => AmpErr,--можно не подключать
     Amplitude => Amplitude,
     StartPhase => StartPhase,
     CarrierFrequency => CarrierFrequency,
@@ -357,7 +346,7 @@ modulator_inst : modulator
     CarrierFrequency_OUT => CarrierFrequency,
     SymbolFrequency_OUT => SymbolFrequency,
     rdreq => rdreq,
-    empty => empty,--
+    empty => empty,--к азату?
     full => full,--
     q => DataPort,
     usedw => usedw--
@@ -378,7 +367,7 @@ modulator_inst : modulator
     WB_DataOut => WB_DataOut,
     WB_DataIn_0 => WB_DataIn_0,
     WB_DataIn_1 => WB_DataIn_1,--
-    WB_DataIn_2 => WB_DataIn_2,
+    WB_DataIn_2 => WB_DataIn_2,--должен быть гетеродин, но он открестился
     WB_DataIn_3 => WB_DataIn_3,--
     WB_WE => WB_WE,
     WB_Sel => WB_Sel,
@@ -387,7 +376,7 @@ modulator_inst : modulator
     WB_Cyc_1 => WB_Cyc_1,
     WB_Cyc_2 => WB_Cyc_2,--
     WB_Cyc_3 => WB_Cyc_3,--
-    WB_Ack => WB_Ack_OUT,
+    WB_Ack => WB_Ack,
     WB_CTI => WB_CTI
   );
 
@@ -402,7 +391,7 @@ modulator_inst : modulator
     FT2232H_FSCLK => FT2232H_FSCLK,
     data_input => data_output,
     rdreq_output => rdreq_output,
-    wrreq_input => wrreq_otput,
+    wrreq_input => wrreq_output,
     q_output => q_input,
     usedw_input_count => usedw_input_fo,
     usedw_output_count => usedw_input_fi
@@ -415,8 +404,8 @@ modulator_inst : modulator
     nRst => nRst,
     DAC_I_sig => DAC_I_s,
     DAC_Q_sig => DAC_Q_s,
-    Rst_For_DAC => Rst_For_DAC,--установить в 0
-    Power_Down => Power_Down,--установить в 0?
+    Rst_For_DAC => '0',--установить в 0
+    Power_Down => '0',--установить в 0?
     --на выход
     DAC_Clk => DAC_Clk,--
     DAC_Rst => DAC_Rst,--
@@ -427,12 +416,13 @@ modulator_inst : modulator
 
 
 -----------------Analyzer
-DDS_inst : DDS-- куда подключать WB_DataIn_1
+DDS_inst : DDS
 port map (
   clk => c0,
   nRst => reset OR locked,
   WB_Addr => WB_Addr,
   WB_DataIn => WB_DataOut,
+  WB_DataOut => WB_DataIn_1,
   WB_WE => WB_WE,
   WB_Sel => WB_Sel,
   WB_STB => WB_STB,
@@ -449,11 +439,12 @@ port map (
   Clk_ADC => Clk_ADC,
   Clk_DataFlow => Clk_DataFlow,
   nRst => reset OR locked,
-  ReceiveDataMode => ReceiveDataMode,
-  ADC_SigIn => ADC_SigIn,--
+  ReceiveDataMode => ReceiveDataMode,------пока к земле?
+  ADC_SigIn => ADC_SigIn,--на выход
   ISigOut => ISigOut,
   QSigOut => QSigOut,
-  DataStrobe => DataStrobe,
+  DataStrobe => DataStrobe, 
+  --на выход
   Gain_s => Gain_s,--
   OutputBusSelect_s => OutputBusSelect_s,--
   Standby_s => Standby_s,--
@@ -463,39 +454,19 @@ port map (
 );
 
 
-Geterodine_module_inst : Geterodine_module--почему 2 WB_Ack
-port map (
-  WB_ADDR_IN => WB_Addr,
-  WB_ACK_OUT => WB_Ack,--
-  WB_DATA_IN_0 => WB_DATA_IN_0,--должен быть 1 (соединить WB_DataOut)
-  WB_DATA_IN_1 => WB_DATA_IN_1,--
-  WB_DATA_IN_2 => WB_DATA_IN_2,--
-  WB_DATA_IN_3 => WB_DATA_IN_3,--
-  WB_DATA_OUT => WB_DataIn_2,
-  WB_SEL_IN => WB_Sel,
-  WB_STB_IN => WB_STB,
-  WB_WE => WB_WE,
-  WB_Cyc_0 => WB_Cyc_0,--должен быть 1 (соединить WB_Cyc_2)
-  WB_Cyc_1 => WB_Cyc_1,--
-  WB_Cyc_2 => WB_Cyc_2,--
-  WB_Cyc_3 => WB_Cyc_3,--
-  WB_Ack => WB_Ack,
-  WB_CTI => WB_CTI,
-  Clk => c0,
-  nRst => reset OR locked,
-  ReceiveDataMode => ReceiveDataMode,
-  DataStrobe => DataStrobe,
-  ISig_In => ISigOut,
-  QSig_In => QSigOut,
-  FS_IncrDecr => FS_IncrDecr,--
-  IData_Out => IData_Out,
-  QData_Out => QData_Out,
-  DataValid => DataValid,
-  i_coeff_0 => i_coeff_0,--
-  i_coeff_1 => i_coeff_1,--
-  i_coeff_2 => i_coeff_2,--
-  i_coeff_3 => i_coeff_3--
-);
+Geterodine_module_inst : Geterodine_module
+  port map (
+    Clk => c0,
+    nRst => reset OR locked,
+    ReceiveDataMode => ReceiveDataMode,--пока к земле?
+    DataStrobe => DataStrobe,
+    ISig_In => ISigOut,
+    QSig_In => QSigOut,
+    FS_IncrDecr => FS_IncrDecr,--
+    IData_Out => IData_Out,
+    QData_Out => QData_Out,
+    DataValid => DataValid
+  );
 
 
   MA_inst : MA
@@ -508,7 +479,6 @@ port map (
     IData_Out => IData_In,
     QData_out => QData_In
   );
-
 
 
   demodulator_decoder_top_inst : demodulator_decoder_top
