@@ -8,10 +8,10 @@ entity Tester is
     -- входные данные с FT
     FT2232H_FSDI : in std_logic;
     -- Входной тактовый сигнал для микросхемы FT2232H
-    FT2322H_FSCLK : in std_logic;
+    FT2232H_FSCLK : in std_logic;
     -- общие сигналы
     tester_clk : out std_logic := '0';
-    tester_reset : out std_logic := '0';
+    tester_reset : out std_logic := '1';
     -- готовность FT к приму данных (0)
     FT2232H_FSCTS : out std_logic := '1';
     -- канал передачи данных к FT
@@ -46,6 +46,18 @@ architecture tester_top of Tester is
     return FullHeader;
   end function Test_Concatination;
 	
+	
+	procedure skiptime(time_count: in integer) is
+	 begin
+		  count_time: for k in 0 to time_count-1 loop
+		    wait until rising_edge(TbClock); 
+		    wait for 200 fs; --need to wait for signal stability, value depends on the Clk frequency. 
+		                     --For example, for Clk period = 100 ns (10 MHz) it's ok to wait for 200 ps.
+		  --if rising_edge(TbClock) then
+		  --wait for 2 ps;
+		  --end if;
+		  end loop count_time ;
+	 end;
 	
   --увеличение счетчика запросов
   function RecalculationTID(TID_count : in std_logic_vector(7 downto 0)) return std_logic_vector is
@@ -83,20 +95,23 @@ architecture tester_top of Tester is
 		FullHeader := Addr & "00000000" & TID_count & BCount & "00" & FB & Cmd;
 		 
 		-- разрешение на запись в FT
-		wait until rising_edge(TbClock);
-		FT2232H_FSCTS <= '0';
+		--wait until rising_edge(TbClock);
+		--FT2232H_FSCTS <= '0';
 		
 		
 		
 		--циклическая запись заголовка
-		full_write: for k in 0 to 5 loop
+		full_write: for k in 0 to 2 loop
 			-- запись Start bit (==0), если 1 то ошибка
-			wait until rising_edge(TbClock);
+			if (k /= 0) then
+				wait until rising_edge(TbClock);
+			end if;
 			FT2232H_FSDO <= '0';
 			--запись 8 значащих бит
-			write8bit: for i in 0 to 7 loop
+			write8bit: for i in 15 downto 0 loop
 				wait until rising_edge(TbClock);
-				FT2232H_FSDO <= FullHeader(47 - (k*8 + i));--записываемый бит
+				FT2232H_FSDO <= FullHeader(i+ k*16);
+				--FT2232H_FSDO <= FullHeader(47 - (k*16 + i));--записываемый бит
 			end loop write8bit;
 			-- запись Source bit
 			wait until rising_edge(TbClock);
@@ -105,23 +120,46 @@ architecture tester_top of Tester is
 
 		
 		--циклическая запись данных
-		data_write: for g in 0 to (to_integer(unsigned(BCount))-1) loop
+		data_write: for g in 0 to ((to_integer(unsigned(BCount))/2) - 1) loop
 			-- запись Start bit (==0), если 1 то ошибка
 			wait until rising_edge(TbClock);
 			FT2232H_FSDO <= '0';
-			--запись 8 значащих бит
-			write8bit_data: for n in 7 downto 0 loop
+			--запись 16 значащих бит
+			write16bit_data: for n in 15 downto 0 loop
 				wait until rising_edge(TbClock);
-				FT2232H_FSDO <= data((to_integer(unsigned(BCount))*8-1) - (g*8+n));--записываемый бит
-			end loop write8bit_data;
+				FT2232H_FSDO <= data(n + g*16);
+			end loop write16bit_data;
 			-- запись Source bit
 			wait until rising_edge(TbClock);
 			FT2232H_FSDO <= '1';	
 		end loop data_write;
 		
+		
+		if (Bcount(0) = '1') then --нечетное число байт данных
+		--	заполнение нулями
+			empty_write: for g in 0 to 7 loop
+			wait until rising_edge(TbClock);
+			FT2232H_FSDO <= '0';
+			end loop empty_write;
+		-- запись Start bit (==0), если 1 то ошибка
+			wait until rising_edge(TbClock);
+			FT2232H_FSDO <= '0';
+			--запись 8 значащих бит
+			write8bit_data: for n in 0 to 7 loop
+				wait until rising_edge(TbClock);
+				FT2232H_FSDO <= data((to_integer(unsigned(BCount))*8-1) - n);
+			end loop write8bit_data;
+			-- запись Source bit
+			wait until rising_edge(TbClock);
+			FT2232H_FSDO <= '1';	
+
+		end if;
+		
+		
+		
 		--запрет на запись в FT
-		wait until rising_edge(TbClock);
-		FT2232H_FSCTS <= '1';
+		--wait until rising_edge(TbClock);
+		--FT2232H_FSCTS <= '1';
 		
 	end procedure WriteCommand;
   
@@ -147,18 +185,21 @@ begin
 		FullHeader := Addr & "00000000" & TID_count & BCount & "00" & FB & Cmd;
 		 
 		-- разрешение на запись в FT
-		wait until rising_edge(TbClock);
-		FT2232H_FSCTS <= '0';
+		--wait until rising_edge(TbClock);
+		--FT2232H_FSCTS <= '0';
 		
 		--циклическая запись заголовка
-		full_write: for k in 0 to 5 loop
+		full_write: for k in 0 to 2 loop
 			-- запись Start bit (==0), если 1 то ошибка
-			wait until rising_edge(TbClock);
+			if (k /= 0) then
+				wait until rising_edge(TbClock);
+			end if;
 			FT2232H_FSDO <= '0';
 			--запись 8 значащих бит
-			write8bit: for i in 0 to 7 loop
+			write8bit: for i in 15 downto 0 loop
 				wait until rising_edge(TbClock);
-				FT2232H_FSDO <= FullHeader(47 - (k*8 + i));--записываемый бит
+				FT2232H_FSDO <= FullHeader(i+ k*16);
+				--FT2232H_FSDO <= FullHeader(47 - (k*16 + i));--записываемый бит
 			end loop write8bit;
 			-- запись Source bit
 			wait until rising_edge(TbClock);
@@ -166,8 +207,8 @@ begin
 		end loop full_write;
 		
 		--запрет на запись в FT
-		wait until rising_edge(TbClock);
-		FT2232H_FSCTS <= '1';
+		--wait until rising_edge(TbClock);
+		--FT2232H_FSCTS <= '1';
 		
 end procedure ReadCommand;
 
@@ -178,16 +219,20 @@ begin
 
   TbClock <= not TbClock after TbPeriod/2 when TbSimEnded /= '1' else '0';
   tester_clk <= TbClock;
-
+  
+  
+  --постановка разрешения для первого модуля на дальнейшую отправку данных
 
   stimuli : process --сменить название?
   begin
+	  FT2232H_FSDO <= '1';
+    --wait for TbPeriod;
+    tester_reset <= '0';
     wait for TbPeriod;
     tester_reset <= '1';
     wait for TbPeriod;
-    tester_reset <= '0';
-    wait for TbPeriod;
     --001
+	 FT2232H_FSCTS <= '0';
 	 test_FullHeader <= Test_Concatination("0000000001", '0', "001", TID_count, "1100000000000001");
 	 ReadCommand("0000000001", '0', "001", TID_count, "1100000000000001", FT2232H_FSCTS, FT2232H_FSDO);
 	 wait for TbPeriod;
@@ -195,10 +240,12 @@ begin
     wait for TbPeriod;
     --010
     test_FullHeader <= Test_Concatination("0000000010", '0', "010", TID_count, "0000000000000000");
-	 WriteCommand("0000000010", '0', "010", TID_count, "0000000000000000", "1000001111000001", FT2232H_FSCTS, FT2232H_FSDO);
+	 WriteCommand("0000000011", '0', "010", TID_count, "0000000000000000", "100001110100000000000000", FT2232H_FSCTS, FT2232H_FSDO);
 	 wait for TbPeriod;
     TID_count <= RecalculationTID(TID_count);
     wait for TbPeriod;
+	 --wait for TbPeriod;
+	 --FT2232H_FSCTS <= '1';
     --011
 	 --
     --wait for TbPeriod;
@@ -213,6 +260,8 @@ begin
     --wait for TbPeriod;
     TbSimEnded <= '1';
   end process;
+
+
 end tester_top;
 
 
