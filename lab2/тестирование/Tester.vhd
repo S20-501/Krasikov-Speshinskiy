@@ -37,12 +37,13 @@ architecture tester_top of Tester is
   constant BCount: in std_logic_vector(9 downto 0);
 	constant FB: in std_logic;
 	constant Cmd: in std_logic_vector(2 downto 0);
-	constant count_TID: in std_logic_vector(7 downto 0);
+	constant TID_count: in std_logic_vector(7 downto 0);
 	constant Addr: in std_logic_vector(15 downto 0)
   ) return std_logic_vector is
     variable FullHeader: std_logic_vector(47 downto 0);
   begin
-    FullHeader := Addr & "00000000" & count_TID & BCount & "00" & FB & Cmd;
+    FullHeader := BCount & "00" & FB & Cmd & "00000000" & TID_count & Addr;
+    --FullHeader := Addr & "00000000" & TID_count & BCount & "00" & FB & Cmd;
     return FullHeader;
   end function Test_Concatination;
 	
@@ -92,8 +93,9 @@ architecture tester_top of Tester is
 	)is
 		variable FullHeader: std_logic_vector(0 to 47);			
 	begin
-		FullHeader := Addr & "00000000" & TID_count & BCount & "00" & FB & Cmd;
-		 
+
+		--FullHeader := Addr & "00000000" & TID_count & BCount & "00" & FB & Cmd;
+		 FullHeader := BCount & "00" & FB & Cmd & "00000000" & TID_count & Addr;
 		-- разрешение на запись в FT
 		--wait until rising_edge(TbClock);
 		--FT2232H_FSCTS <= '0';
@@ -110,7 +112,7 @@ architecture tester_top of Tester is
 			--запись 8 значащих бит
 			write8bit: for i in 15 downto 0 loop
 				wait until rising_edge(TbClock);
-				FT2232H_FSDO <= FullHeader(i+ k*16);
+				FT2232H_FSDO <= FullHeader(i + k*16);
 				--FT2232H_FSDO <= FullHeader(47 - (k*16 + i));--записываемый бит
 			end loop write8bit;
 			-- запись Source bit
@@ -182,8 +184,9 @@ procedure ReadCommand(
 	variable FullHeader: std_logic_vector(0 to 47);			
 begin
 
-		FullHeader := Addr & "00000000" & TID_count & BCount & "00" & FB & Cmd;
-		 
+		--FullHeader := Addr & "00000000" & TID_count & BCount & "00" & FB & Cmd;
+		FullHeader := BCount & "00" & FB & Cmd & "00000000" & TID_count & Addr; 
+		
 		-- разрешение на запись в FT
 		--wait until rising_edge(TbClock);
 		--FT2232H_FSCTS <= '0';
@@ -198,8 +201,8 @@ begin
 			--запись 8 значащих бит
 			write8bit: for i in 15 downto 0 loop
 				wait until rising_edge(TbClock);
-				FT2232H_FSDO <= FullHeader(i+ k*16);
-				--FT2232H_FSDO <= FullHeader(47 - (k*16 + i));--записываемый бит
+				--FT2232H_FSDO <= FullHeader(i + k*16);
+				FT2232H_FSDO <= FullHeader(k*16 + i);--записываемый бит
 			end loop write8bit;
 			-- запись Source bit
 			wait until rising_edge(TbClock);
@@ -233,14 +236,14 @@ begin
     wait for TbPeriod;
     --001
 	 FT2232H_FSCTS <= '0';
-	 test_FullHeader <= Test_Concatination("0000000001", '0', "001", TID_count, "1100000000000001");
-	 ReadCommand("0000000001", '0', "001", TID_count, "1100000000000001", FT2232H_FSCTS, FT2232H_FSDO);
+	 test_FullHeader <= Test_Concatination("0000000001", '0', "001", TID_count, "0000000100000000");
+	 ReadCommand("0000000001", '0', "001", TID_count, "0000000100000000", FT2232H_FSCTS, FT2232H_FSDO);
 	 wait for TbPeriod;
     TID_count <= RecalculationTID(TID_count);
     wait for TbPeriod;
     --010
-    test_FullHeader <= Test_Concatination("0000000010", '0', "010", TID_count, "0000000000000000");
-	 WriteCommand("0000000011", '0', "010", TID_count, "0000000000000000", "100001110100000000000000", FT2232H_FSCTS, FT2232H_FSDO);
+    test_FullHeader <= Test_Concatination("0000000001", '0', "010", TID_count, "0000000100000000");
+	 WriteCommand("0000000001", '0', "010", TID_count, "0000000100000000", "11111111", FT2232H_FSCTS, FT2232H_FSDO);
 	 wait for TbPeriod;
     TID_count <= RecalculationTID(TID_count);
     wait for TbPeriod;

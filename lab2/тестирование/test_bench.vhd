@@ -45,6 +45,7 @@ architecture conecter of test_bench is
   signal WB_Cyc_1 : std_logic;
   signal WB_Cyc_2 : std_logic;
   signal WB_Cyc_3 : std_logic;
+  signal WB_Ack : std_logic;
   signal WB_Ack1 : std_logic;
   signal WB_Ack2 : std_logic;
   signal WB_CTI : std_logic_vector (2 downto 0);
@@ -175,6 +176,8 @@ end component;
 	
 begin
 
+WB_Ack <= WB_Ack1 OR WB_Ack2;
+
 Tester_inst : Tester
   port map (
     FT2232H_FSDI => FT2232H_FSDI,
@@ -269,7 +272,7 @@ DDS_inst : DDS
     WB_Cyc_1 => WB_Cyc_1,
     WB_Cyc_2 => WB_Cyc_2,
     WB_Cyc_3 => WB_Cyc_3,
-    WB_Ack => WB_Ack2,--WB_Ack1 OR WB_Ack2
+    WB_Ack => WB_Ack,--WB_Ack1 OR WB_Ack2
     WB_CTI => WB_CTI
   );
 
