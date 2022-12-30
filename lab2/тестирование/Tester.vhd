@@ -94,7 +94,6 @@ architecture tester_top of Tester is
     --данные для записи
     constant data : in std_logic_vector;
     --выходы для записи
-    signal FT2232H_FSCTS : out std_logic;
     signal FT2232H_FSDO : out std_logic
   )is
     variable FullHeader : std_logic_vector(0 to 47);
@@ -178,7 +177,6 @@ architecture tester_top of Tester is
     constant TID_couunt : in std_logic_vector(7 downto 0);
     -- Адрес назначения (источника) данных
     constant Addr : in std_logic_vector(15 downto 0);
-    signal FT2232H_FSCTS : out std_logic;
     signal FT2232H_FSDO : out std_logic
   )is
     variable FullHeader : std_logic_vector(0 to 47);
@@ -216,20 +214,17 @@ begin
   begin
     if(rising_edge(TbClock)) then
 	   if (CTS_open_r = '0' and FT2232H_FSDI = '0') then
-				FSDI_count <= "0000";
+		      FSDI_count <= "0000";
 	         CTS_open_r <= '1';
+				FT2232H_FSCTS <= '0';
+		else
+				FSDI_count <= std_logic_vector(to_unsigned(to_integer(unsigned(FSDI_count)) + 1, 4));
 	   end if;
 	 
-	   if (CTS_open_r = '1' and FSDI_count = "0001") then
-	       FT2232H_FSCTS <= '0';
-	   end if;
-	 
-	   if (CTS_open_r = '1' and FSDI_count = "1011") then 
+	   if (CTS_open_r = '1' and FSDI_count = "1000") then 
 	       FT2232H_FSCTS <= '1';
 	  	    CTS_open_r <= '0';
-		    FSDI_count <= "0000";
 	   end if;
-      FSDI_count <= std_logic_vector(to_unsigned(to_integer(unsigned(FSDI_count)) + 1, 4));
 	 end if;
   end process;
 
@@ -242,16 +237,15 @@ begin
     wait for TbPeriod;
 
     --001
-    FT2232H_FSCTS <= '0';
     test_FullHeader <= Test_Concatination("0000000001", '0', "001", TID_count, "0000000100000000");
-    ReadCommand("0000000001", '0', "001", TID_count, "0000000100000000", FT2232H_FSCTS, FT2232H_FSDO);
+    ReadCommand("0000000001", '0', "001", TID_count, "0000000100000000", FT2232H_FSDO);
     TID_count <= RecalculationTID(TID_count);
     wait for TbPeriod;
     --skiptime(10);
 
     --010
     test_FullHeader <= Test_Concatination("0000000001", '0', "010", TID_count, "0000000100000000");
-    WriteCommand("0000000001", '0', "010", TID_count, "0000000100000001", "11111111", FT2232H_FSCTS, FT2232H_FSDO);
+    WriteCommand("0000000001", '0', "010", TID_count, "0000000100000001", "11111111", FT2232H_FSDO);
     wait for TbPeriod;
     TID_count <= RecalculationTID(TID_count);
 
