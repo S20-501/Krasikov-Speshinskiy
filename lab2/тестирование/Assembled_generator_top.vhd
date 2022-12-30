@@ -1,6 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
-
+use ieee.std_logic_arith.all;
 entity Assembled_generator_top is
     port (
       reset : in std_logic;
@@ -30,21 +30,24 @@ architecture rtl of Assembled_generator_top is
       );
     end component;
 
-    component modulator
-      port (
-      clk : in std_logic;
-      nRst : in std_logic;
-      ModulationMode : in std_logic_vector(1 downto 0);
-      Mode : in std_logic;
-      Amplitude : out std_logic_vector(15 downto 0);
-      StartPhase : out std_logic_vector(15 downto 0);
-      SymbolFrequency : in std_logic_vector(31 downto 0);
-      DataPort : in std_logic_vector(15 downto 0);
-      rdreq : out std_logic;
-      empty : in std_logic;
-      DDS_en : out std_logic
-    );
-  end component;
+	 
+component modulator
+    port (
+    clk : in std_logic;
+    nRst : in std_logic;
+    ModulationMode : in std_logic_vector(1 downto 0);
+    Mode : in std_logic;
+    Amplitude : out std_logic_vector(15 downto 0);
+    StartPhase : out std_logic_vector(15 downto 0);
+    SymbolFrequency : in std_logic_vector(31 downto 0);
+    DataPort : in std_logic_vector(15 downto 0);
+    rdreq : out std_logic;
+    empty : in std_logic;
+    DDS_en : out std_logic
+  );
+end component;
+
+  
   
 
     component Protocol_exchange_module
