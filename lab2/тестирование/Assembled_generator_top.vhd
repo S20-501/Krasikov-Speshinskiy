@@ -4,13 +4,20 @@ use ieee.std_logic_arith.all;
 entity Assembled_generator_top is
     port (
       reset : in std_logic;
+		c0 : in std_logic;
+		c1 : in std_logic;
+		
+		FT2232H_FSCTS : in std_logic;
+      FT2232H_FSDO : in std_logic;
+      FT2232H_FSDI : out std_logic;
+      FT2232H_FSCLK : out std_logic;
+		  
       DAC_Clk : out std_logic;
       DAC_Rst : out std_logic;
       DAC_Write : out std_logic;
       DAC_Select : out std_logic;
-      DAC_Data : out std_logic_vector(9 downto 0);
-		  c0 : in std_logic;
-		  c1 : in std_logic
+      DAC_Data : out std_logic_vector(9 downto 0)
+
     );
 end entity Assembled_generator_top;
 
@@ -201,10 +208,10 @@ signal usedw : STD_LOGIC_VECTOR (9 DOWNTO 0);
 --protocol exchange module
 -- signal Clk : std_logic;
 -- signal nRst : std_logic;
-signal FT2232H_FSCTS : std_logic;
-signal FT2232H_FSDO : std_logic;
-signal FT2232H_FSDI : std_logic;
-signal FT2232H_FSCLK : std_logic;
+--signal FT2232H_FSCTS : std_logic;
+--signal FT2232H_FSDO : std_logic;
+--signal FT2232H_FSDI : std_logic;
+--signal FT2232H_FSCLK : std_logic;
 signal data_input : STD_LOGIC_VECTOR (15 DOWNTO 0);
 signal rdreq_output : STD_LOGIC;
 signal wrreq_input : STD_LOGIC;

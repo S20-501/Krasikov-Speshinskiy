@@ -4,173 +4,67 @@ use ieee.std_logic_arith.all;
 
 entity Assembled_top is
   port (
-    CLK12M : in std_logic;
-    reset : in std_logic;
-    DataStrobe_out : out std_logic;
-    dataout : out std_logic_vector(7 downto 0);
-    DAC_Clk : out std_logic;
+    inclk0 : in STD_LOGIC;
+	 reset : in STD_LOGIC;
+	 
+	 --связь с FT
+	 FT2232H_FSCTS : in std_logic;
+    FT2232H_FSDO : in std_logic;
+    FT2232H_FSDI : out std_logic;
+    FT2232H_FSCLK : out std_logic;
+	 
+	 --выходы генератора
+	 DAC_Clk : out std_logic;
     DAC_Rst : out std_logic;
     DAC_Write : out std_logic;
     DAC_Select : out std_logic;
     DAC_Data : out std_logic_vector(9 downto 0);
+	 
+	 --выходы анализатора
+	 DataStrobe_out : out std_logic;
+    dataout : out std_logic_vector(7 downto 0);
     ADC_SigIn : in std_logic_vector(9 downto 0);
-    Gain_s : out std_logic;--F13
-    OutputBusSelect_s : out std_logic;--F15
-    Standby_s : out std_logic;--F16
-    PowerDown_s : out std_logic;--D16
-    OffsetCorrect_s : out std_logic;--P1
-    OutputFormat_s : out std_logic--L2
+    Gain_s : out std_logic;
+    OutputBusSelect_s : out std_logic;
+    Standby_s : out std_logic;
+    PowerDown_s : out std_logic;
+    OffsetCorrect_s : out std_logic;
+    OutputFormat_s : out std_logic
+	 
   );
 end entity Assembled_top;
 
 
-architecture rtl of Assembled_top is
-    
------------------PLL
-    component TOP_PLL
-        port (
-        areset : in STD_LOGIC;
-        inclk0 : in STD_LOGIC;
-        c0 : out STD_LOGIC;
-        c1 : out STD_LOGIC;
-        locked : out STD_LOGIC
-      );
-    end component;
-   
-    
------------------Tester   
-/*    component Assembled_tester
-        port (
-        FT2232H_FSDI : in std_logic;
-        FT2322H_FSCLK : in std_logic;
-        tester_clk : out std_logic;
-        tester_reset : out std_logic;
-        FT2232H_FSCTS : out std_logic;
-        FT2232H_FSDO : out std_logic
-      );
-    end component;
-  */  
+architecture assembled_top of Assembled_top is
 
------------------Generator
-component generator_top
+
+  signal full_reset : STD_LOGIC;
+  
+  signal c0 : STD_LOGIC;
+  signal c1 : STD_LOGIC;
+  signal locked : STD_LOGIC;
+
+
+component TOP_PLL
     port (
-    clk : in std_logic;
-    nRst : in std_logic;
-    DDS_en_s : in std_logic;
-    DDS_mode_s : in std_logic_vector(1 downto 0);
-    DDS_amplitude_s : in std_logic_vector(15 downto 0);
-    DDS_frequency_s : in std_logic_vector(31 downto 0);
-    DDS_start_phase_s : in std_logic_vector(15 downto 0);
-    DAC_I_s : out std_logic_vector(9 downto 0);
-    DAC_Q_s : out std_logic_vector(9 downto 0)
+    areset : in STD_LOGIC;
+    inclk0 : in STD_LOGIC;
+    c0 : out STD_LOGIC;
+    c1 : out STD_LOGIC;
+    locked : out STD_LOGIC
   );
 end component;
 
 
-component GSMRegistr_top
+component Assembled_generator_top
     port (
-    WB_Addr : in std_logic_vector( 15 downto 0 );
-    WB_Ack : out std_logic;
-    Clk : in std_logic;
-    WB_DataIn : in std_logic_vector( 15 downto 0 );
-    WB_DataOut : out std_logic_vector( 15 downto 0 );
-    nRst : in std_logic;
-    WB_Sel : in std_logic_vector( 1 downto 0 );
-    WB_STB : in std_logic;
-    WB_WE : in std_logic;
-    WB_Cyc : in std_logic;
-    WB_CTI : in std_logic_vector(2 downto 0);
-    PRT_O : out std_logic_vector( 15 downto 0 );
-    Amplitude_OUT : out std_logic_vector( 15 downto 0);
-    StartPhase_OUT : out std_logic_vector( 15 downto 0);
-    CarrierFrequency_OUT : out std_logic_vector(31 downto 0);
-    SymbolFrequency_OUT : out std_logic_vector( 31 downto 0);
-    rdreq : in STD_LOGIC;
-    empty : out STD_LOGIC;
-    full : out STD_LOGIC;
-    q : out STD_LOGIC_VECTOR (15 DOWNTO 0);
-    usedw : out STD_LOGIC_VECTOR (9 DOWNTO 0)
-  );
-end component;
-
-
-
-component modulator
-    port (
-    clk : in std_logic;
-    nRst : in std_logic;
-    Sync : in std_logic;
-    SignalMode : in std_logic_vector(1 downto 0);
-    ModulationMode : in std_logic_vector(1 downto 0);
-    Mode : in std_logic;
-    AmpErr : in std_logic;
-    Amplitude : out std_logic_vector(15 downto 0);
-    StartPhase : out std_logic_vector(15 downto 0);
-    CarrierFrequency : in std_logic_vector(31 downto 0);
-    SymbolFrequency : in std_logic_vector(31 downto 0);
-    DataPort : in std_logic_vector(15 downto 0);
-    rdreq : out std_logic;
-    DDS_en : out std_logic
-  );
-end component;
-
-
-component Protocol_exchange_module
-    port (
-    Clk : in std_logic;
-    nRst : in std_logic;
-    q_input : in std_logic_vector (15 downto 0);
-    usedw_input_fi : in std_logic_vector (10 downto 0);
-    rdreq_output : out std_logic;
-    data_output : out std_logic_vector (15 downto 0);
-    usedw_input_fo : in std_logic_vector (10 downto 0);
-    wrreq_output : out std_logic;
-    WB_Addr : out std_logic_vector (15 downto 0);
-    WB_DataOut : out std_logic_vector (15 downto 0);
-    WB_DataIn_0 : in std_logic_vector (15 downto 0);
-    WB_DataIn_1 : in std_logic_vector (15 downto 0);
-    WB_DataIn_2 : in std_logic_vector (15 downto 0);
-    WB_DataIn_3 : in std_logic_vector (15 downto 0);
-    WB_WE : out std_logic;
-    WB_Sel : out std_logic_vector (1 downto 0);
-    WB_STB : out std_logic;
-    WB_Cyc_0 : out std_logic;
-    WB_Cyc_1 : out std_logic;
-    WB_Cyc_2 : out std_logic;
-    WB_Cyc_3 : out std_logic;
-    WB_Ack : in std_logic;
-    WB_CTI : out std_logic_vector (2 downto 0)
-  );
-end component;
-
-
-
-component ProtocolExchangeModule
-    port (
-    Clk : in std_logic;
-    nRst : in std_logic;
+    reset : in std_logic;
+    c0 : in std_logic;
+    c1 : in std_logic;
     FT2232H_FSCTS : in std_logic;
     FT2232H_FSDO : in std_logic;
     FT2232H_FSDI : out std_logic;
     FT2232H_FSCLK : out std_logic;
-    data_input : in STD_LOGIC_VECTOR (15 DOWNTO 0);
-    rdreq_output : in STD_LOGIC;
-    wrreq_input : in STD_LOGIC;
-    q_output : out STD_LOGIC_VECTOR (15 DOWNTO 0);
-    usedw_input_count : out STD_LOGIC_VECTOR (10 DOWNTO 0);
-    usedw_output_count : out STD_LOGIC_VECTOR (10 DOWNTO 0)
-  );
-end component;
-
-
-component DACControlModule
-    port (
-    Clk : in std_logic;
-    nRst : in std_logic;
-    DAC_I_sig : in std_logic_vector(9 downto 0);
-    DAC_Q_sig : in std_logic_vector(9 downto 0);
-    Rst_For_DAC : in std_logic;
-    Power_Down : in std_logic;
     DAC_Clk : out std_logic;
     DAC_Rst : out std_logic;
     DAC_Write : out std_logic;
@@ -180,89 +74,25 @@ component DACControlModule
 end component;
 
 
------------------Analyzer
-component DDS
+
+component Assembled_analyzer_top
     port (
-    clk : in std_logic;
-    nRst : in std_logic;
-    WB_Addr : in std_logic_vector(15 downto 0);
-    WB_DataOut : out std_logic_vector(15 downto 0);
-    WB_DataIn : in std_logic_vector(15 downto 0);
-    WB_WE : in std_logic;
-    WB_Sel : in std_logic_vector(1 downto 0);
-    WB_STB : in std_logic;
-    WB_Cyc : in std_logic;
-    WB_Ack : out std_logic;
-    WB_CTI : in std_logic_vector(2 downto 0);
-    DataFlow_Clk : out std_logic;
-    ADC_Clk : out std_logic
-  );
-end component;
-
-
-
-  component demultiplexer_top
-    port (
-      Clk_ADC : in std_logic;
-      Clk_DataFlow : in std_logic;
-      nRst : in std_logic;
-      ReceiveDataMode : in std_logic;
-      ADC_SigIn : in std_logic_vector(9 downto 0);
-      ISigOut : out std_logic_vector(9 downto 0);
-      QSigOut : out std_logic_vector(9 downto 0);
-      DataStrobe : out std_logic;
-      Gain_s : out std_logic;
-      OutputBusSelect_s : out std_logic;
-      Standby_s : out std_logic;
-      PowerDown_s : out std_logic;
-      OffsetCorrect_s : out std_logic;
-      OutputFormat_s : out std_logic
-    );
-  end component;
-
-
-  component Geterodine_module
-    port (
-    Clk : in std_logic;
-    nRst : in std_logic;
-    ReceiveDataMode : in std_logic;
-    DataStrobe : in std_logic;
-    ISig_In : in std_logic_vector(9 downto 0);
-    QSig_In : in std_logic_vector(9 downto 0);
-    FS_IncrDecr : in std_logic_vector(1 downto 0);
-    IData_Out : out std_logic_vector(9 downto 0);
-    QData_Out : out std_logic_vector(9 downto 0);
-    DataValid : out std_logic
-  );
-  end component;
-
-
-
-  component MA
-    port (
-    i_clk : in std_logic;
-    i_nRst : in std_logic;
-    IData_In : in std_logic_vector(10-1 downto 0);
-    QData_In : in std_logic_vector(10-1 downto 0);
-    MANumber : in std_logic_vector(5-1 downto 0);
-    IData_Out : out std_logic_vector(10-1 downto 0);
-    QData_out : out std_logic_vector(10-1 downto 0)
-  );
-end component;
-
-
-
-
-  component demodulator_decoder_top
-    port (
-    clk : in std_logic;
-    nRst : in std_logic;
-    IData_In : in STD_LOGIC_VECTOR(9 downto 0);
-    QData_In : in STD_LOGIC_VECTOR(9 downto 0);
-    DataValid : in std_logic;
-    DataStrobe : out std_logic;
-    delay : out unsigned(9 downto 0);
-    dataout : out std_logic_vector(7 downto 0)
+    reset : in std_logic;
+    c0 : in std_logic;
+    c1 : in std_logic;
+    FT2232H_FSCTS : in std_logic;
+    FT2232H_FSDO : in std_logic;
+    FT2232H_FSDI : out std_logic;
+    FT2232H_FSCLK : out std_logic;
+    DataStrobe_out : out std_logic;
+    dataout : out std_logic_vector(7 downto 0);
+    ADC_SigIn : in std_logic_vector(9 downto 0);
+    Gain_s : out std_logic;
+    OutputBusSelect_s : out std_logic;
+    Standby_s : out std_logic;
+    PowerDown_s : out std_logic;
+    OffsetCorrect_s : out std_logic;
+    OutputFormat_s : out std_logic
   );
 end component;
 
@@ -270,228 +100,59 @@ end component;
 
 begin
 
------------------PLL
-    TOP_PLL_inst : TOP_PLL
-    port map (
-      areset => reset,
-      inclk0 => CLK12M,
-      c0 => c0, --40MHz
-      c1 => c1, --80MHz
-      locked => locked
-    );
+full_reset <= reset or locked;
+
+TOP_PLL_inst : TOP_PLL
+  port map (
+    areset => reset,
+    inclk0 => inclk0,
+    c0 => c0,
+    c1 => c1,
+    locked => locked
+  );
+
   
-
------------------Tester
-/*Assembled_tester_inst : Assembled_tester
+  
+Assembled_generator_top_inst : Assembled_generator_top
   port map (
-    FT2232H_FSDI => FT2232H_FSDI,
-    FT2232H_FSCLK => FT2232H_FSCLK,
-    tester_clk => tester_clk,
-    tester_reset => tester_reset,
-    FT2232H_FSCTS => FT2232H_FSCTS,
-    FT2232H_FSDO => FT2232H_FSDO
-  );
-*/
-
------------------Generator
-modulator_inst : modulator
-  port map (
-    clk => c0,
-    nRst => reset OR locked,
-    Sync => PRT_O(6),
-    SignalMode => PRT_O(4 downto 3),
-    ModulationMode => PRT_O(2 downto 1),
-    Mode => PRT_O(0),
-    AmpErr => AmpErr,--можно не подключать
-    Amplitude => Amplitude,
-    StartPhase => StartPhase,
-    CarrierFrequency => CarrierFrequency,
-    SymbolFrequency => SymbolFrequency,
-    DataPort => DataPort,
-    rdreq => rdreq,
-    DDS_en => DDS_en
-  );
-
-
-  generator_top_inst : generator_top
-  port map (
-    clk => c0,
-    nRst => reset OR locked,
-    DDS_en_s => DDS_en,
-    DDS_mode_s => PRT_O(4 downto 3),
-    DDS_amplitude_s => Amplitude,
-    DDS_frequency_s => CarrierFrequency,
-    DDS_start_phase_s => StartPhase,
-    DAC_I_s => DAC_I_s,
-    DAC_Q_s => DAC_Q_s
-  );
-
-
-  GSMRegistr_top_inst : GSMRegistr_top
-  port map (
-    WB_Addr => WB_Addr,
-    WB_Ack => WB_Ack,--
-    Clk => c0,
-    WB_DataIn => WB_DataOut,
-    WB_DataOut => WB_DataIn_0,
-    nRst => reset OR locked,
-    WB_Sel => WB_Sel,
-    WB_STB => WB_STB,
-    WB_WE => WB_WE,
-    WB_Cyc => WB_Cyc_0,
-    WB_CTI => WB_CTI,
-    PRT_O => PRT_O,
-    Amplitude_OUT => Amplitude_OUT,--
-    StartPhase_OUT => StartPhase_OUT,--
-    CarrierFrequency_OUT => CarrierFrequency,
-    SymbolFrequency_OUT => SymbolFrequency,
-    rdreq => rdreq,
-    empty => empty,--к азату?
-    full => full,--
-    q => DataPort,
-    usedw => usedw--
-  );
-
-
-  Protocol_exchange_module_inst : Protocol_exchange_module
-  port map (
-    Clk => c0,
-    nRst => reset OR locked,
-    q_input => q_input,
-    usedw_input_fi => usedw_input_fi,
-    rdreq_output => rdreq_output,
-    data_output => data_output,
-    usedw_input_fo => usedw_input_fo,
-    wrreq_output => wrreq_output,
-    WB_Addr => WB_Addr,
-    WB_DataOut => WB_DataOut,
-    WB_DataIn_0 => WB_DataIn_0,
-    WB_DataIn_1 => WB_DataIn_1,--
-    WB_DataIn_2 => WB_DataIn_2,--должен быть гетеродин, но он открестился
-    WB_DataIn_3 => WB_DataIn_3,--
-    WB_WE => WB_WE,
-    WB_Sel => WB_Sel,
-    WB_STB => WB_STB,
-    WB_Cyc_0 => WB_Cyc_0,
-    WB_Cyc_1 => WB_Cyc_1,
-    WB_Cyc_2 => WB_Cyc_2,--
-    WB_Cyc_3 => WB_Cyc_3,--
-    WB_Ack => WB_Ack,
-    WB_CTI => WB_CTI
-  );
-
-
-  ProtocolExchangeModule_inst : ProtocolExchangeModule
-  port map (
-    Clk => c0,
-    nRst => reset OR locked,
+    reset => full_reset,
+    c0 => c0,
+    c1 => c1,
     FT2232H_FSCTS => FT2232H_FSCTS,
     FT2232H_FSDO => FT2232H_FSDO,
     FT2232H_FSDI => FT2232H_FSDI,
     FT2232H_FSCLK => FT2232H_FSCLK,
-    data_input => data_output,
-    rdreq_output => rdreq_output,
-    wrreq_input => wrreq_output,
-    q_output => q_input,
-    usedw_input_count => usedw_input_fo,
-    usedw_output_count => usedw_input_fi
+    DAC_Clk => DAC_Clk,
+    DAC_Rst => DAC_Rst,
+    DAC_Write => DAC_Write,
+    DAC_Select => DAC_Select,
+    DAC_Data => DAC_Data
   );
 
 
-  DACControlModule_inst : DACControlModule
+  
+  
+Assembled_analyzer_top_inst : Assembled_analyzer_top
   port map (
-    Clk => c0,
-    nRst => nRst,
-    DAC_I_sig => DAC_I_s,
-    DAC_Q_sig => DAC_Q_s,
-    Rst_For_DAC => '0',--установить в 0
-    Power_Down => '0',--установить в 0?
-    --на выход
-    DAC_Clk => DAC_Clk,--
-    DAC_Rst => DAC_Rst,--
-    DAC_Write => DAC_Write,--
-    DAC_Select => DAC_Select,--
-    DAC_Data => DAC_Data--
+    reset => full_reset,
+    c0 => c0,
+    c1 => c1,
+    FT2232H_FSCTS => FT2232H_FSCTS,
+    FT2232H_FSDO => FT2232H_FSDO,
+    --FT2232H_FSDI => FT2232H_FSDI,
+    --FT2232H_FSCLK => FT2232H_FSCLK,
+    DataStrobe_out => DataStrobe_out,
+    dataout => dataout,
+    ADC_SigIn => ADC_SigIn,
+    Gain_s => Gain_s,
+    OutputBusSelect_s => OutputBusSelect_s,
+    Standby_s => Standby_s,
+    PowerDown_s => PowerDown_s,
+    OffsetCorrect_s => OffsetCorrect_s,
+    OutputFormat_s => OutputFormat_s
   );
 
 
------------------Analyzer
-DDS_inst : DDS
-port map (
-  clk => c0,
-  nRst => reset OR locked,
-  WB_Addr => WB_Addr,
-  WB_DataIn => WB_DataOut,
-  WB_DataOut => WB_DataIn_1,
-  WB_WE => WB_WE,
-  WB_Sel => WB_Sel,
-  WB_STB => WB_STB,
-  WB_Cyc => WB_Cyc_1,
-  WB_Ack => WB_Ack,
-  WB_CTI => WB_CTI,
-  DataFlow_Clk => Clk_DataFlow,
-  ADC_Clk => Clk_ADC
-);
-
-
-demultiplexer_top_inst : demultiplexer_top
-port map (
-  Clk_ADC => Clk_ADC,
-  Clk_DataFlow => Clk_DataFlow,
-  nRst => reset OR locked,
-  ReceiveDataMode => ReceiveDataMode,------пока к земле?
-  ADC_SigIn => ADC_SigIn,--на выход
-  ISigOut => ISigOut,
-  QSigOut => QSigOut,
-  DataStrobe => DataStrobe, 
-  --на выход
-  Gain_s => Gain_s,--
-  OutputBusSelect_s => OutputBusSelect_s,--
-  Standby_s => Standby_s,--
-  PowerDown_s => PowerDown_s,--
-  OffsetCorrect_s => OffsetCorrect_s,--
-  OutputFormat_s => OutputFormat_s--
-);
-
-
-Geterodine_module_inst : Geterodine_module
-  port map (
-    Clk => c0,
-    nRst => reset OR locked,
-    ReceiveDataMode => ReceiveDataMode,--пока к земле?
-    DataStrobe => DataStrobe,
-    ISig_In => ISigOut,
-    QSig_In => QSigOut,
-    FS_IncrDecr => FS_IncrDecr,--
-    IData_Out => IData_Out,
-    QData_Out => QData_Out,
-    DataValid => DataValid
-  );
-
-
-  MA_inst : MA
-  port map (
-    i_clk => c0,
-    i_nRst => reset OR locked,
-    IData_In => IData_Out,
-    QData_In => QData_Out,
-    MANumber => delay,
-    IData_Out => IData_In,
-    QData_out => QData_In
-  );
-
-
-  demodulator_decoder_top_inst : demodulator_decoder_top
-  port map (
-    clk => c0,
-    nRst => reset OR locked,
-    IData_In => IData_In,
-    QData_In => QData_In,
-    DataValid => DataValid,
-    DataStrobe => DataStrobe_out,--на выход
-    delay => delay,
-    dataout => dataout--на выход
-  );
 
 
 end architecture;
