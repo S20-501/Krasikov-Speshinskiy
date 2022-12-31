@@ -5,8 +5,8 @@ use ieee.std_logic_arith.all;
 entity Assembled_analyzer_top is
   port (
     reset : in std_logic;
-	 c0 : in std_logic;
-	 c1 : in std_logic;
+	  c0 : in std_logic;
+	  c1 : in std_logic;
     DataStrobe_out : out std_logic;
     dataout : out std_logic_vector(7 downto 0);
     ADC_SigIn : in std_logic_vector(9 downto 0);

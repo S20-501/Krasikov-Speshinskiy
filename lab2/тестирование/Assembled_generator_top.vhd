@@ -9,8 +9,8 @@ entity Assembled_generator_top is
       DAC_Write : out std_logic;
       DAC_Select : out std_logic;
       DAC_Data : out std_logic_vector(9 downto 0);
-		c0 : in std_logic;
-		c1 : in std_logic
+		  c0 : in std_logic;
+		  c1 : in std_logic
     );
 end entity Assembled_generator_top;
 
