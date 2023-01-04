@@ -119,14 +119,14 @@ architecture tester_top of Tester is
       FT2232H_FSDO <= '1';
     end loop full_write;
 
-    if (to_integer(unsigned(BCount)) > 1) then
+    if (BCount(0) /= '1') then
       --циклическая запись данных
-      data_write : for g in 0 to ((to_integer(unsigned(BCount))) - 1) loop
+      data_write1 : for g in 0 to ((to_integer(unsigned(BCount)))/2 - 1) loop
         -- запись Start bit (==0), если 1 то ошибка
         wait until rising_edge(TbClock);
         FT2232H_FSDO <= '0';
         --запись 16 значащих бит
-        write16bit_data : for n in 15 downto 0 loop
+        write16bit_data1 : for n in 15 downto 0 loop
           if (n = 7) then
             wait until rising_edge(TbClock);
             FT2232H_FSDO <= '1';
@@ -136,25 +136,51 @@ architecture tester_top of Tester is
 
           wait until rising_edge(TbClock);
           FT2232H_FSDO <= data(n + g * 16);
-        end loop write16bit_data;
+        end loop write16bit_data1;
         -- запись Source bit
         wait until rising_edge(TbClock);
         FT2232H_FSDO <= '1';
-      end loop data_write;
+      end loop data_write1;
 
     else
 
+	 
+	 --циклическая запись данных
+      data_write2 : for g in 0 to ((to_integer(unsigned(BCount)))/2 - 1) loop
+        -- запись Start bit (==0), если 1 то ошибка
+        wait until rising_edge(TbClock);
+        FT2232H_FSDO <= '0';
+        --запись 16 значащих бит
+        write16bit_data2 : for n in 15 downto 0 loop
+          if (n = 7) then
+            wait until rising_edge(TbClock);
+            FT2232H_FSDO <= '1';
+            wait until rising_edge(TbClock);
+            FT2232H_FSDO <= '0';
+          end if;
+
+          wait until rising_edge(TbClock);
+          FT2232H_FSDO <= data(n + g * 16);
+        end loop write16bit_data2;
+        -- запись Source bit
+        wait until rising_edge(TbClock);
+        FT2232H_FSDO <= '1';
+      end loop data_write2;
+	 
+	 
       --значащая наоборот, а потом нули
       wait until rising_edge(TbClock);
       FT2232H_FSDO <= '0';
-      write8bit_data1 : for q in 7 downto 0 loop
+      write8bit_data1 : for q in ((to_integer(unsigned(BCount)))*8-1) downto ((to_integer(unsigned(BCount)))*8-8) loop
         wait until rising_edge(TbClock);
         FT2232H_FSDO <= data(q);
       end loop write8bit_data1;
+		
       wait until rising_edge(TbClock);
       FT2232H_FSDO <= '1';
       wait until rising_edge(TbClock);
       FT2232H_FSDO <= '0';
+		
       write8bit_data2 : for q in 7 downto 0 loop
         wait until rising_edge(TbClock);
         FT2232H_FSDO <= '0';
@@ -236,18 +262,34 @@ begin
     tester_reset <= '1';
     wait for TbPeriod;
 
-    --001
-    test_FullHeader <= Test_Concatination("0000000001", '0', "001", TID_count, "0000000100000000");
-    ReadCommand("0000000001", '0', "001", TID_count, "0000000100000000", FT2232H_FSDO);
-    TID_count <= RecalculationTID(TID_count);
-    wait for TbPeriod;
-    --skiptime(10);
-
-    --010
+	 
+	 --010
     test_FullHeader <= Test_Concatination("0000000001", '0', "010", TID_count, "0000000100000000");
     WriteCommand("0000000001", '0', "010", TID_count, "0000000100000001", "11111111", FT2232H_FSDO);
+	 TID_count <= RecalculationTID(TID_count);
     wait for TbPeriod;
+	 
+	 
+	 --001
+	 test_FullHeader <= Test_Concatination("0000000001", '1', "001", TID_count, "0000000100000001");
+    ReadCommand("0000000001", '1', "001", TID_count, "0000000100000001", FT2232H_FSDO);
     TID_count <= RecalculationTID(TID_count);
+    wait for TbPeriod;
+	 
+	 
+	 --110
+    test_FullHeader <= Test_Concatination("0000000001", '0', "010", TID_count, "0000000100000000");
+    WriteCommand("0000000011", '1', "110", TID_count, "0000000100000001", "010000001111111100000110", FT2232H_FSDO);
+	 TID_count <= RecalculationTID(TID_count);
+    wait for TbPeriod;
+	 
+	 
+	 --101
+	 test_FullHeader <= Test_Concatination("0000000001", '1', "001", TID_count, "0000000100000001");
+    ReadCommand("0000000011", '1', "101", TID_count, "0000000100000001", FT2232H_FSDO);
+    TID_count <= RecalculationTID(TID_count);
+    wait for TbPeriod;
+
 
     skiptime(300);
     TbSimEnded <= '1';
