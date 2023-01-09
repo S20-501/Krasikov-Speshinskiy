@@ -4,9 +4,9 @@ use ieee.std_logic_arith.all;
 
 entity Assembled_analyzer_top is
   port (
-    reset : in std_logic;
-	 c0 : in std_logic;
-	 c1 : in std_logic;
+	 
+	 inclk0 : in STD_LOGIC;
+	 reset : in STD_LOGIC;
 	 
 	 FT2232H_FSCTS : in std_logic;
     FT2232H_FSDO : in std_logic;
@@ -28,6 +28,18 @@ end entity Assembled_analyzer_top;
 
 architecture rtl2 of Assembled_analyzer_top is
  
+ 
+ 
+ component TOP_PLL
+    port (
+    areset : in STD_LOGIC;
+    inclk0 : in STD_LOGIC;
+    c0 : out STD_LOGIC;
+    c1 : out STD_LOGIC;
+    locked : out STD_LOGIC
+  );
+end component;
+
 
   component Protocol_exchange_module
     port (
@@ -159,6 +171,13 @@ component demodulator_decoder_top
 end component;
 
 
+  signal full_reset : STD_LOGIC;
+  
+  signal c0 : STD_LOGIC;
+  signal c1 : STD_LOGIC;
+  signal locked : STD_LOGIC;
+
+
 --dds
 signal clk : std_logic;
 signal nRst : std_logic;
@@ -271,10 +290,24 @@ signal WB_Cyc_3 : std_logic;
 begin
 
 
+TOP_PLL_inst : TOP_PLL
+  port map (
+    areset => reset,
+    inclk0 => inclk0,
+    c0 => c0,
+    c1 => c1,
+    locked => locked
+  );
+
+  
+full_reset <= reset or locked;
+
+
+
 Protocol_exchange_module_inst : Protocol_exchange_module
   port map (
     Clk => c0,
-    nRst => reset,
+    nRst => full_reset,
     q_input => q_input,
     usedw_input_fi => usedw_input_fi,
     rdreq_output => rdreq_output,
@@ -301,7 +334,7 @@ Protocol_exchange_module_inst : Protocol_exchange_module
   ProtocolExchangeModule_inst : ProtocolExchangeModule
   port map (
      Clk => c0,
-    nRst => reset,
+    nRst => full_reset,
     FT2232H_FSCTS => FT2232H_FSCTS,
     FT2232H_FSDO => FT2232H_FSDO,
     FT2232H_FSDI => FT2232H_FSDI,
@@ -318,7 +351,7 @@ Protocol_exchange_module_inst : Protocol_exchange_module
 DDS_inst : DDS
 port map (
   clk => c0,
-  nRst => reset,
+  nRst => full_reset,
   WB_Addr => WB_Addr,
   WB_DataIn => WB_DataOut,
   WB_DataOut => WB_DataIn_1,
@@ -337,7 +370,7 @@ demultiplexer_top_inst : demultiplexer_top
 port map (
   Clk_ADC => Clk_ADC,
   Clk_DataFlow => Clk_DataFlow,
-  nRst => reset,
+  nRst => full_reset,
   ReceiveDataMode => ReceiveDataMode,------пока к земле?
   ADC_SigIn => ADC_SigIn,--на выход
   ISigOut => ISigOut,
@@ -356,7 +389,7 @@ port map (
 Geterodine_module_inst : Geterodine_module
   port map (
     Clk => c0,
-    nRst => reset,
+    nRst => full_reset,
     ReceiveDataMode => ReceiveDataMode,--пока к земле?
     DataStrobe => DataStrobe,
     ISig_In => ISigOut,
@@ -371,7 +404,7 @@ Geterodine_module_inst : Geterodine_module
   MA_inst : MA
   port map (
     i_clk => c0,
-    i_nRst => reset,
+    i_nRst => full_reset,
     IData_In => IData_Out,
     QData_In => QData_Out,
     MANumber => delay,
@@ -383,7 +416,7 @@ Geterodine_module_inst : Geterodine_module
   demodulator_decoder_top_inst : demodulator_decoder_top
   port map (
     clk => c0,
-    nRst => reset,
+    nRst => full_reset,
     IData_In => IData_In,
     QData_In => QData_In,
     DataValid => DataValid,

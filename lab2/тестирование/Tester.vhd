@@ -265,33 +265,53 @@ begin
 	 
 	 --010
     test_FullHeader <= Test_Concatination("0000000001", '0', "010", TID_count, "0000000100000000");
-    WriteCommand("0000000001", '0', "010", TID_count, "0000000100000001", "11111111", FT2232H_FSDO);
-	 TID_count <= RecalculationTID(TID_count);
+    WriteCommand("0000000001", '0', "010", TID_count, "0000000100000000", "11111111", FT2232H_FSDO);
+	  TID_count <= RecalculationTID(TID_count);
     wait for TbPeriod;
 	 
 	 
 	 --001
 	 test_FullHeader <= Test_Concatination("0000000001", '1', "001", TID_count, "0000000100000001");
-    ReadCommand("0000000001", '1', "001", TID_count, "0000000100000001", FT2232H_FSDO);
+    ReadCommand("0000000001", '1', "001", TID_count, "0000000100000000", FT2232H_FSDO);
     TID_count <= RecalculationTID(TID_count);
     wait for TbPeriod;
 	 
+    --010
+    test_FullHeader <= Test_Concatination("0000000001", '0', "010", TID_count, "0000000100000000");
+    WriteCommand("0000000001", '0', "010", TID_count, "0000000100000000", "00000000", FT2232H_FSDO);
+	  TID_count <= RecalculationTID(TID_count);
+    wait for TbPeriod;
 	 
 	 --110
     test_FullHeader <= Test_Concatination("0000000001", '0', "010", TID_count, "0000000100000000");
-    WriteCommand("0000000011", '1', "110", TID_count, "0000000100000001", "010000001111111100000110", FT2232H_FSDO);
+    WriteCommand("0000000100", '1', "110", TID_count, "0000000100000011", "00100000000000000000000000000000", FT2232H_FSDO);
 	 TID_count <= RecalculationTID(TID_count);
     wait for TbPeriod;
 	 
 	 
 	 --101
 	 test_FullHeader <= Test_Concatination("0000000001", '1', "001", TID_count, "0000000100000001");
-    ReadCommand("0000000011", '1', "101", TID_count, "0000000100000001", FT2232H_FSDO);
+    ReadCommand("0000000100", '1', "101", TID_count, "0000000100000011", FT2232H_FSDO);
     TID_count <= RecalculationTID(TID_count);
     wait for TbPeriod;
+	 
+	 --макар
+	 
+	 --110
+  --   test_FullHeader <= Test_Concatination("0000000001", '0', "010", TID_count, "0000000100000000");
+  --   WriteCommand("0000000011", '1', "110", TID_count, "0000000000000000", "010000001111111100000110", FT2232H_FSDO);
+	--  TID_count <= RecalculationTID(TID_count);
+  --   wait for TbPeriod;
+	 
+	 
+	 --101
+	--  test_FullHeader <= Test_Concatination("0000000001", '1', "001", TID_count, "0000000100000001");
+  --   ReadCommand("0000000011", '1', "101", TID_count, "0000000000000000", FT2232H_FSDO);
+  --   TID_count <= RecalculationTID(TID_count);
+  --   wait for TbPeriod;
 
 
-    skiptime(300);
+    skiptime(3000);
     TbSimEnded <= '1';
   end process;
   

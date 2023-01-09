@@ -38,29 +38,10 @@ end entity Assembled_top;
 architecture assembled_top of Assembled_top is
 
 
-  signal full_reset : STD_LOGIC;
-  
-  signal c0 : STD_LOGIC;
-  signal c1 : STD_LOGIC;
-  signal locked : STD_LOGIC;
-
-
-component TOP_PLL
-    port (
-    areset : in STD_LOGIC;
-    inclk0 : in STD_LOGIC;
-    c0 : out STD_LOGIC;
-    c1 : out STD_LOGIC;
-    locked : out STD_LOGIC
-  );
-end component;
-
-
 component Assembled_generator_top
     port (
-    reset : in std_logic;
-    c0 : in std_logic;
-    c1 : in std_logic;
+    inclk0 : in STD_LOGIC;
+    reset : in STD_LOGIC;
     FT2232H_FSCTS : in std_logic;
     FT2232H_FSDO : in std_logic;
     FT2232H_FSDI : out std_logic;
@@ -75,11 +56,11 @@ end component;
 
 
 
+
 component Assembled_analyzer_top
     port (
-    reset : in std_logic;
-    c0 : in std_logic;
-    c1 : in std_logic;
+    inclk0 : in STD_LOGIC;
+    reset : in STD_LOGIC;
     FT2232H_FSCTS : in std_logic;
     FT2232H_FSDO : in std_logic;
     FT2232H_FSDI : out std_logic;
@@ -98,26 +79,13 @@ end component;
 
 
 
+
 begin
 
-full_reset <= reset or locked;
-
-TOP_PLL_inst : TOP_PLL
+  Assembled_generator_top_inst : Assembled_generator_top
   port map (
-    areset => reset,
     inclk0 => inclk0,
-    c0 => c0,
-    c1 => c1,
-    locked => locked
-  );
-
-  
-  
-Assembled_generator_top_inst : Assembled_generator_top
-  port map (
-    reset => full_reset,
-    c0 => c0,
-    c1 => c1,
+    reset => reset,
     FT2232H_FSCTS => FT2232H_FSCTS,
     FT2232H_FSDO => FT2232H_FSDO,
     FT2232H_FSDI => FT2232H_FSDI,
@@ -130,13 +98,10 @@ Assembled_generator_top_inst : Assembled_generator_top
   );
 
 
-  
-  
-Assembled_analyzer_top_inst : Assembled_analyzer_top
+  Assembled_analyzer_top_inst : Assembled_analyzer_top
   port map (
-    reset => full_reset,
-    c0 => c0,
-    c1 => c1,
+    inclk0 => inclk0,
+    reset => reset,
     FT2232H_FSCTS => FT2232H_FSCTS,
     FT2232H_FSDO => FT2232H_FSDO,
     --FT2232H_FSDI => FT2232H_FSDI,

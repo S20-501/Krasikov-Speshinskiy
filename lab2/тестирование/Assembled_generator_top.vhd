@@ -3,9 +3,8 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 entity Assembled_generator_top is
     port (
-      reset : in std_logic;
-		c0 : in std_logic;
-		c1 : in std_logic;
+      inclk0 : in STD_LOGIC;
+	   reset : in STD_LOGIC;
 		
 		FT2232H_FSCTS : in std_logic;
       FT2232H_FSDO : in std_logic;
@@ -36,6 +35,18 @@ architecture rtl of Assembled_generator_top is
             DAC_Q_s : out std_logic_vector(9 downto 0)
       );
     end component;
+	 
+	 
+component TOP_PLL
+    port (
+    areset : in STD_LOGIC;
+    inclk0 : in STD_LOGIC;
+    c0 : out STD_LOGIC;
+    c1 : out STD_LOGIC;
+    locked : out STD_LOGIC
+  );
+end component;
+
 
 	 
 component modulator
@@ -141,6 +152,12 @@ component GSMRegistr_top
   usedw : out STD_LOGIC_VECTOR (9 DOWNTO 0)
 );
 end component;
+
+  signal full_reset : STD_LOGIC;
+  
+  signal c0 : STD_LOGIC;
+  signal c1 : STD_LOGIC;
+  signal locked : STD_LOGIC;
   
     --DAC control
 -- signal Clk : std_logic;
@@ -246,11 +263,23 @@ signal WB_Cyc_3 : std_logic;
 
 begin
 
+TOP_PLL_inst : TOP_PLL
+  port map (
+    areset => reset,
+    inclk0 => inclk0,
+    c0 => c0,
+    c1 => c1,
+    locked => locked
+  );
+  
+  
+  full_reset <= reset or locked;
+
   
   modulator_inst : modulator
   port map (
     clk => c0,
-    nRst => reset,
+    nRst => full_reset,
     ModulationMode => PRT_O(2 downto 1),
     Mode => PRT_O(0),
     Amplitude => Amplitude,
@@ -266,7 +295,7 @@ begin
   generator_top_inst : generator_top
   port map (
     clk => c0,
-    nRst => reset,
+    nRst => full_reset,
     DDS_en_s => DDS_en,
     DDS_mode_s => DDS_mode_s,--
     DDS_amplitude_s => Amplitude,--почему в 3 модулях
@@ -279,7 +308,7 @@ begin
   Protocol_exchange_module_inst : Protocol_exchange_module
   port map (
     Clk => c0,
-    nRst => reset,
+    nRst => full_reset,
     q_input => q_input,
     usedw_input_fi => usedw_input_fi,
     rdreq_output => rdreq_output,
@@ -306,7 +335,7 @@ begin
   ProtocolExchangeModule_inst : ProtocolExchangeModule
   port map (
      Clk => c0,
-    nRst => reset,
+    nRst => full_reset,
     FT2232H_FSCTS => FT2232H_FSCTS,
     FT2232H_FSDO => FT2232H_FSDO,
     FT2232H_FSDI => FT2232H_FSDI,
@@ -322,7 +351,7 @@ begin
   DACControlModule_inst : DACControlModule
   port map (
     Clk => c0,
-    nRst => reset,
+    nRst => full_reset,
     DAC_I_sig => DAC_I_s,
     DAC_Q_sig => DAC_Q_s,
     Rst_For_DAC => '0',--установить в 0
@@ -342,7 +371,7 @@ begin
     Clk => c0,
     WB_DataIn => WB_DataOut,
     WB_DataOut => WB_DataIn_0,
-    nRst => reset,
+    nRst => full_reset,
     WB_Sel => WB_Sel,
     WB_STB => WB_STB,
     WB_WE => WB_WE,
